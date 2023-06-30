@@ -34,10 +34,10 @@ app.use(bodyParser.json());
 app.use(expressValidator());
 app.use(cors());
 
-app.use('/', pageRoutes);
-app.use('/', authRoutes);
-app.use('/', postRoutes);
-app.use('/', userRoutes);
+app.use('/api', pageRoutes);
+app.use('/api', authRoutes);
+app.use('/api', postRoutes);
+app.use('/api', userRoutes);
 
 app.use(function (err, req, res, next) {
     if (err.name === "UnauthorizedError") {

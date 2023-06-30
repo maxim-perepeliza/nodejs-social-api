@@ -10,7 +10,7 @@ const checkPostAvailable = (req, res, next) => {
 
 const router = express.Router();
 
-router.get('/', apiDocsController.getApiDocs);
+router.get('/api', apiDocsController.getApiDocs);
 router.get('/blog', blogController.getBlog);
 
 module.exports = router;
