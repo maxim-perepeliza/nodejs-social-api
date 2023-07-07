@@ -6,7 +6,7 @@ const fs = require("fs");
 
 exports.postById = (req, res, next, id) => {
     Post.findById(id)
-        .populate("postedBy", "_id name")
+        .populate("postedBy", "_id name role")
         .populate(
             {
                 path: 'comments',
@@ -119,12 +119,17 @@ exports.postsByUser = (req, res) => {
 };
 
 exports.isPoster = (req, res, next) => {
-    let isPoster = req.post && req.auth && req.post.postedBy._id == req.auth._id
+    let sameUser = req.post && req.auth && req.post.postedBy._id == req.auth._id
+    let adminUser = req.post && req.auth && req.auth.role === 'admin'
+
+    let isPoster = sameUser || adminUser
 
     console.log("req.post: ", req.post);
     console.log("req.auth: ", req.auth);
     console.log("req.post.postedBy._id: ", req.post.postedBy._id);
     console.log("req.auth._id: ", req.auth._id);
+    console.log("sameUser: ", sameUser);
+    console.log("adminUser: ", adminUser);
 
     if (!isPoster) {
         return res.status(403).json({

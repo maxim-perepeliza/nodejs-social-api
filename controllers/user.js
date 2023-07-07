@@ -22,12 +22,15 @@ exports.userById = (req, res, next, id) => {
 };
 
 exports.hasAuthorization = (req, res, next) => {
-    const authorized = req.profile && req.auth && req.profile._id === req.auth._id
+    let sameUser = req.profile && req.auth && req.profile._id == req.auth._id;
+    let adminUser = req.profile && req.auth && req.auth.role === 'admin';
+    const authorized = sameUser || adminUser
     if (!authorized) {
         return res.status(403).json({
             rror: "User is not authorized to perform this action"
         })
     }
+    next();
 };
 
 exports.allUsers = (req, res) => {
@@ -38,7 +41,7 @@ exports.allUsers = (req, res) => {
             })
         }
         res.json(users)
-    }).select("name email updated created")
+    }).select("name email updated created role")
 };
 
 exports.getUser = (req, res) => {
