@@ -28,23 +28,37 @@ exports.postById = (req, res, next, id) => {
         })
 };
 
-exports.getPosts = (req, res) => {
-    const posts = Post.find()
-        .populate("postedBy", "_id name")
-        .populate(
-            {
-                path: 'comments',
-                select: 'text created',
-                populate: {
-                    path: 'postedBy',
-                    select: '_id name'
-                }
-            },
-        )
-        .select("post._id title body created likes")
-        .sort({ created: -1 })
+exports.getPosts = async (req, res) => {
+    // get current page from req.query or use default value of 1
+    const currentPage = req.query.page || 1;
+    // return 6 posts per page
+    const perPage = 6;
+    let totalItems;
+
+    const posts = await Post.find()
+        // countDocuments() gives you total count of posts
+        .countDocuments()
+        .then(count => {
+            totalItems = count;
+            return Post.find()
+                .skip((currentPage - 1) * perPage)
+                .populate("postedBy", "_id name")
+                .populate(
+                    {
+                        path: 'comments',
+                        select: 'text created',
+                        populate: {
+                            path: 'postedBy',
+                            select: '_id name'
+                        }
+                    },
+                )
+                .sort({ created: -1 })
+                .limit(perPage)
+                .select("post._id title body created likes");
+        })
         .then(posts => {
-            res.json(posts);
+            res.status(200).json(posts);
         })
         .catch(err => console.log(err));
 };
@@ -123,13 +137,6 @@ exports.isPoster = (req, res, next) => {
     let adminUser = req.post && req.auth && req.auth.role === 'admin'
 
     let isPoster = sameUser || adminUser
-
-    console.log("req.post: ", req.post);
-    console.log("req.auth: ", req.auth);
-    console.log("req.post.postedBy._id: ", req.post.postedBy._id);
-    console.log("req.auth._id: ", req.auth._id);
-    console.log("sameUser: ", sameUser);
-    console.log("adminUser: ", adminUser);
 
     if (!isPoster) {
         return res.status(403).json({
