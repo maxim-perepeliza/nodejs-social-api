@@ -63,6 +63,32 @@ exports.getPosts = async (req, res) => {
         .catch(err => console.log(err));
 };
 
+exports.getPostsForTimeline = (req, res) => {
+    let following = req.profile.following
+    following.push(req.profile._id)
+    Post.find({ postedBy: { $in: req.profile.following } })
+        .populate('postedBy', '_id name')
+        .populate(
+            {
+                path: 'comments',
+                select: 'text created',
+                populate: {
+                    path: 'postedBy',
+                    select: '_id name'
+                }
+            },
+        )
+        .sort('-created')
+        .exec((err, posts) => {
+            if (err) {
+                return res.status(400).json({
+                    error: err
+                })
+            }
+            res.status(200).json(posts);
+        })
+};
+
 exports.createPost = (req, res, next) => {
     let form = new formidable.IncomingForm();
     form.keepExtensions = true

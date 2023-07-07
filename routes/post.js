@@ -7,6 +7,7 @@ const { createPostValidator } = require('../validator');
 const router = express.Router();
 
 router.get('/posts', postController.getPosts);
+router.get('/posts-feed/:userId', requireSignin, postController.getPostsForTimeline);
 
 // like/unlike
 router.put('/post/like', requireSignin, postController.like);
